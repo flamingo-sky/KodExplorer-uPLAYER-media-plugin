@@ -1,12 +1,12 @@
 <?php
 
-class UPLAYERPlugin extends PluginBase{
+class uPLAYERPlugin extends PluginBase{
 	function __construct(){
 		parent::__construct();
 	}
 	public function regiest(){
 		$this->hookRegiest(array(
-			'user.commonJs.insert' => 'UPLAYERPlugin.echoJs'
+			'user.commonJs.insert' => 'uPLAYERPlugin.echoJs'
 		));
 	}
 	public function echoJs($st,$act){
