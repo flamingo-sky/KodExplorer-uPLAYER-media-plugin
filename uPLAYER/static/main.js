@@ -18,7 +18,7 @@ function readTextFile(file) {
       }
     }
   }
-  rawFile.send(null);
+  rawFile.send(null);                                           
 }
    
 kodReady.push(function(){  
@@ -29,11 +29,12 @@ kodReady.push(function(){
 		ext:"{{config.fileExt}}",
 		sort:"{{config.fileSort}}",  
     callback:function(path,ext){
-      var url = '{{pluginApi}}&path='+core.pathCommon(path);          
-        window.parent.uplaylist_url = core.path2url(path);
-        window.parent.uplaylist_filename = window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0];    
+       var url = '{{pluginApi}}&path='+core.pathCommon(path);          
+        window.parent.uplaylist_url = core.path2url(path);    
+        window.parent.uplaylist_filename = urlDecode(core.pathThis(path));
+        //window.parent.uplaylist_filename = window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0];    
         window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");     
-
+        //console.log(ui.fileLight);
 //m3u file**********************************************************************
         var new_playlist=[]; 
         var ext = window.parent.uplaylist_url.split('.').pop();
@@ -46,7 +47,10 @@ kodReady.push(function(){
             for (i = 0; i < playlist_lines.length-1; i++) {
               window.parent.uplaylist_url=playlist_lines[i];
               window.parent.uplaylist_url=core.path2url(window.parent.uplaylist_url);
-              window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0]);
+              //window.parent.uplaylist_filename=core.path2url(window.parent.uplaylist_url); 
+              window.parent.uplaylist_filename=core.path2url(decodeURIComponent(window.parent.uplaylist_url)).match(/\/([^\/?#]+)[^\/]*$/);
+              window.parent.uplaylist_filename=(window.parent.uplaylist_filename).slice(1);
+              //window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0]);
               window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");      
               extm =window.parent.uplaylist_url.split('.').pop();
               if (extm=="mp4")  var playlist_line = {title:window.parent.uplaylist_filename, artist:"", m4v:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
@@ -71,7 +75,10 @@ kodReady.push(function(){
                 for (i = 0; i < playlist_lines.length-1; i++) {
                   window.parent.uplaylist_url=playlist_lines[i];
                   window.parent.uplaylist_url=core.path2url(window.parent.uplaylist_url);
-                  window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0]);
+                  //window.parent.uplaylist_filename=core.path2url(window.parent.uplaylist_url);
+                  window.parent.uplaylist_filename=core.path2url(decodeURIComponent(window.parent.uplaylist_url)).match(/\/([^\/?#]+)[^\/]*$/);
+                  window.parent.uplaylist_filename=(window.parent.uplaylist_filename).slice(1);
+                  //window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0]);
                   window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");     
                   extm =window.parent.uplaylist_url.split('.').pop();
                   if (extm=="mp4")  var playlist_line = {title:window.parent.uplaylist_filename, artist:"", m4v:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
@@ -89,7 +96,7 @@ kodReady.push(function(){
           window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_filename);           
           if (typeof window.parent.UPLAYER_instance !== "undefined" && window.parent.UPLAYER_instance.closed == false) {   //uPLAYER is opened 
 //------------------------------------------------------------------------------
-//uPlayer is opened 
+//uPlayer is opened  
             window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");     
             if (ext=="mp4") window.parent._uPlayerPlaylist_0.add({
               title:window.parent.uplaylist_filename,
@@ -104,7 +111,7 @@ kodReady.push(function(){
             }); 
           } else {       
 //------------------------------------------------------------------------------
-//uPlayer is not open
+//uPlayer is not open 
             window.parent.UPLAYER_instance=core.openDialog("{{pluginApi}}",core.icon('{{pluginHost}}static/uP_icon.png'),htmlEncode("uPLAYER"));
             window.parent.UPLAYER_instance._width="489px";
             window.parent.UPLAYER_instance.config.width="489px";

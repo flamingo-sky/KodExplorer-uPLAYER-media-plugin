@@ -72,12 +72,23 @@
       upVis_loader();
 
       $(".uP-playlist ul").css("height","366px");        
+
+      function checkImage(imageSrc, good, bad) {
+    var img = new Image();
+    img.onload = good; 
+    img.onerror = bad;
+    img.src = imageSrc;
+}
+
+
+
       $("#jquery_uPlayer_0").bind($.uPlayer.event.play, function(event) {
-        $.get(window.parent._uPlayerPlaylist_0.playlist[window.parent._uPlayerPlaylist_0.current].poster).done(function () { 
+        /*$.get(window.parent._uPlayerPlaylist_0.playlist[window.parent._uPlayerPlaylist_0.current].poster).done(function () { 
           $(".uP-vis-canvas").css("opacity", "0.5"); 
         }).fail(function () {
           $(".uP-vis-canvas").css("opacity", "1")       
-        }); 
+        });  */
+        checkImage(window.parent._uPlayerPlaylist_0.playlist[window.parent._uPlayerPlaylist_0.current].poster, function(){ $(".uP-vis-canvas").css("opacity", "0.5");  }, function(){ $(".uP-vis-canvas").css("opacity", "1") ; } );
       }); 
       $('.uP-playlist-switch').click(function() {
         window.parent.SavePlaylist();
