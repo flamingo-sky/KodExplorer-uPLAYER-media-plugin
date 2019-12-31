@@ -1,11 +1,19 @@
-//uPlayer plugin to KodExplorer by Nathalis Cortex 2019 experimental media player.3
+//******************************************************************************
+//                                                                            **
+//  uPlayer plugin to KodExplorer by Nathalis 2019 experimental media player  **
+//                                                                            **
+//******************************************************************************
+
+var isMobile_uP=false;
+
 
 var uplaylist_filename="";
 var uplaylist_url="";
 var uplaylist_fileposter="";
 var UPLAYER_instance;
 var _uPlayerPlaylist_0;
- 
+
+var UPUUID=""; 
  
 var allText = ""; 
 function readTextFile(file) {
@@ -22,6 +30,8 @@ function readTextFile(file) {
 }
    
 kodReady.push(function(){  
+  isMobile_uP = window.matchMedia("only screen and (max-width: 760px)").matches;
+//------------------------------------------------------------------------------
  	kodApp.add({
 		name:"uPLAYER",
 		title:LNG['Plugin.default.uPLAYER'],
@@ -30,61 +40,112 @@ kodReady.push(function(){
 		sort:"{{config.fileSort}}",  
     callback:function(path,ext){
        var url = '{{pluginApi}}&path='+core.pathCommon(path);          
-        window.parent.uplaylist_url = core.path2url(path);    
+        //////window.parent.uplaylist_url = core.path2url(path);
+//playlist URL load FIX        
+        
+          if (path.indexOf("/share/") > -1) {
+            path = path.replace('{groupPath}:1','');
+            window.parent.uplaylist_url = "/data/Group/public/home"+path;
+          } else if (G.myDesktop=="/desktop/") {
+            window.parent.uplaylist_url = "/data/User/"+$("#topbar-user").text().trim()+"/home"+path;
+          } else {
+            window.parent.uplaylist_url = core.path2url(path);
+          }    
+        //alert(window.parent.uplaylist_url);    
+            
         window.parent.uplaylist_filename = urlDecode(core.pathThis(path));
         //window.parent.uplaylist_filename = window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0];    
         window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");     
         //console.log(ui.fileLight);
+//****************************************************************************//
+//                                                                            //
+//     OPENING PLAYLIST FILE!                                                 //
+//                                                                            //
+//****************************************************************************//
+
+
 //m3u file**********************************************************************
         var new_playlist=[]; 
         var ext = window.parent.uplaylist_url.split('.').pop();
         if (ext=="m3u") {
           readTextFile(window.parent.uplaylist_url);
           var playlist_lines = allText.split("\n");
-          if (typeof window.parent.UPLAYER_instance !== "undefined" && window.parent.UPLAYER_instance.closed == false) {   
+          if (typeof UPLAYER_instance !== "undefined" && UPLAYER_instance.closed == false) {   
 //------------------------------------------------------------------------------
 //uPlayer is opened          
             for (i = 0; i < playlist_lines.length-1; i++) {
-              window.parent.uplaylist_url=playlist_lines[i];
-              window.parent.uplaylist_url=core.path2url(window.parent.uplaylist_url);
-              //window.parent.uplaylist_filename=core.path2url(window.parent.uplaylist_url); 
-              window.parent.uplaylist_filename=core.path2url(decodeURIComponent(window.parent.uplaylist_url)).match(/\/([^\/?#]+)[^\/]*$/);
-              window.parent.uplaylist_filename=(window.parent.uplaylist_filename).slice(1);
-              //window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0]);
-              window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");      
-              extm =window.parent.uplaylist_url.split('.').pop();
-              if (extm=="mp4")  var playlist_line = {title:window.parent.uplaylist_filename, artist:"", m4v:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
-              else var playlist_line = {title:window.parent.uplaylist_filename, artist:"", mp3:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
-              new_playlist.push(playlist_line);    
+              //alert(playlist_lines[i]);
+              if (playlist_lines[i]!="") {
+                
+                
+                //NCX hack
+               var hostname= $(location).attr('protocol') + "//" + $(location).attr('hostname');
+
+                
+                window.parent.uplaylist_url=hostname+playlist_lines[i];
+                
+                
+                window.parent.uplaylist_url=window.parent.uplaylist_url;
+                //window.parent.uplaylist_filename=core.path2url(window.parent.uplaylist_url); 
+                window.parent.uplaylist_filename=core.path2url(decodeURIComponent(window.parent.uplaylist_url)).match(/\/([^\/?#]+)[^\/]*$/);
+                window.parent.uplaylist_filename=(window.parent.uplaylist_filename).slice(1);
+                //window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0]);
+                window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");      
+                extm =window.parent.uplaylist_url.split('.').pop();
+                if (extm=="mp4")  var playlist_line = {title:window.parent.uplaylist_filename, artist:"", m4v:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
+                else if (extm=="mp3") var playlist_line = {title:window.parent.uplaylist_filename, artist:"", mp3:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
+                else if (extm=="ogg") var playlist_line = {title:window.parent.uplaylist_filename, artist:"", oga:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
+                else if (extm=="wav") var playlist_line = {title:window.parent.uplaylist_filename, artist:"", wav:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
+                new_playlist.push(playlist_line); 
+                
+                 
+              }
             }
+              //alert(new_playlist); 
             window.parent._uPlayerPlaylist_0.setPlaylist(new_playlist);   
           } else {     
 //------------------------------------------------------------------------------
 //uPlayer is not open
-            window.parent.UPLAYER_instance=core.openDialog("{{pluginApi}}",core.icon('{{pluginHost}}static/uP_icon.png'),htmlEncode("uPLAYER"));
-            window.parent.UPLAYER_instance._width="489px";
-            window.parent.UPLAYER_instance.config.width="489px";
-            window.parent.UPLAYER_instance._height="679px";
-            window.parent.UPLAYER_instance.config.height="679px";
-            window.parent.UPLAYER_instance.config.resize=false;
-            window.parent.UPLAYER_instance.config.show=false;
-            var UPUUID=(window.parent.UPLAYER_instance.config.id);
+            UPLAYER_instance=core.openDialog("{{pluginApi}}",core.icon('{{pluginHost}}static/uP_icon.png'),htmlEncode("uPLAYER")); 
+            //UPLAYER_instance._width="489px";
+            //UPLAYER_instance.config.width="489px";
+            //UPLAYER_instance._height="679px";
+            //UPLAYER_instance.config.height="679px";
+            UPLAYER_instance.config.resize=false;
+            UPLAYER_instance.config.show=false;
+            window.parent.UPUUID=(UPLAYER_instance.config.id);
             var checkExist_uPlayer_b = setInterval(function() {
-              if (typeof window.parent.UPLAYER_instance !== "undefined") {
+              if (typeof UPLAYER_instance !== "undefined") {
                 var i;
                 for (i = 0; i < playlist_lines.length-1; i++) {
-                  window.parent.uplaylist_url=playlist_lines[i];
-                  window.parent.uplaylist_url=core.path2url(window.parent.uplaylist_url);
-                  //window.parent.uplaylist_filename=core.path2url(window.parent.uplaylist_url);
-                  window.parent.uplaylist_filename=core.path2url(decodeURIComponent(window.parent.uplaylist_url)).match(/\/([^\/?#]+)[^\/]*$/);
-                  window.parent.uplaylist_filename=(window.parent.uplaylist_filename).slice(1);
-                  //window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0]);
-                  window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");     
-                  extm =window.parent.uplaylist_url.split('.').pop();
-                  if (extm=="mp4")  var playlist_line = {title:window.parent.uplaylist_filename, artist:"", m4v:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
-                  else var playlist_line = {title:window.parent.uplaylist_filename, artist:"", mp3:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
-                  new_playlist.push(playlist_line);    
+                  if (playlist_lines[i]!="") {
+
+                    //NCX hack
+                    var hostname= $(location).attr('protocol') + "//" + $(location).attr('hostname');
+           
+                    window.parent.uplaylist_url=hostname+playlist_lines[i];
+                    
+                    
+
+                    
+                    //window.parent.uplaylist_url=window.parent.uplaylist_url;
+                    //window.parent.uplaylist_filename=core.path2url(window.parent.uplaylist_url);
+                    window.parent.uplaylist_filename=core.path2url(decodeURIComponent(window.parent.uplaylist_url)).match(/\/([^\/?#]+)[^\/]*$/);
+                    window.parent.uplaylist_filename=(window.parent.uplaylist_filename).slice(1);
+                    //window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_url.split('/').pop().split('#')[0].split('?')[0]);
+                    window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");     
+                    extm =window.parent.uplaylist_url.split('.').pop();
+                    if (extm=="mp4")  var playlist_line = {title:window.parent.uplaylist_filename, artist:"", m4v:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
+                    else if (extm=="mp3") var playlist_line = {title:window.parent.uplaylist_filename, artist:"", mp3:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
+                    else if (extm=="ogg") var playlist_line = {title:window.parent.uplaylist_filename, artist:"", oga:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
+                    else if (extm=="wav") var playlist_line = {title:window.parent.uplaylist_filename, artist:"", wav:window.parent.uplaylist_url, poster:window.parent.uplaylist_fileposter};
+                    new_playlist.push(playlist_line);  
+                    
+                    
+                    ///alert(uplaylist_url);
+                  }  
                 }
+              //alert(new_playlist); 
                 window.parent._uPlayerPlaylist_0.setPlaylist(new_playlist);    
 		            clearInterval(checkExist_uPlayer_b);
               } 
@@ -93,57 +154,102 @@ kodReady.push(function(){
 //------------------------------------------------------------------------------
         } else {
 //mp3 or mp4 file***************************************************************
+
+//****************************************************************************//
+//                                                                            //
+//     OPENING MEDIA FILE!                                                    //
+//                                                                            //
+//****************************************************************************//
+
           window.parent.uplaylist_filename=decodeURIComponent(window.parent.uplaylist_filename);           
-          if (typeof window.parent.UPLAYER_instance !== "undefined" && window.parent.UPLAYER_instance.closed == false) {   //uPLAYER is opened 
+          if (typeof UPLAYER_instance !== "undefined" && UPLAYER_instance.closed == false) {   //uPLAYER is opened 
 //------------------------------------------------------------------------------
-//uPlayer is opened  
+//uPlayer is opened
             window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");     
+            
+            
+            
             if (ext=="mp4") window.parent._uPlayerPlaylist_0.add({
               title:window.parent.uplaylist_filename,
               artist:"",
               m4v:window.parent.uplaylist_url,
               poster: window.parent.uplaylist_fileposter
-            }); else window.parent._uPlayerPlaylist_0.add({
+            }); 
+            else if (ext=="mp3") window.parent._uPlayerPlaylist_0.add({
               title:window.parent.uplaylist_filename,
               artist:"",
               mp3:window.parent.uplaylist_url,
               poster: window.parent.uplaylist_fileposter
-            }); 
+            });
+            else if (ext=="wav") window.parent._uPlayerPlaylist_0.add({
+              title:window.parent.uplaylist_filename,
+              artist:"",
+              wav:window.parent.uplaylist_url,
+              poster: window.parent.uplaylist_fileposter
+            });
+            else if (ext=="ogg") window.parent._uPlayerPlaylist_0.add({
+              title:window.parent.uplaylist_filename,
+              artist:"",
+              oga:window.parent.uplaylist_url,
+              poster: window.parent.uplaylist_fileposter
+            });
+
+             //fix call refresh events
+              window.parent._uPlayerPlaylist_0._init();
           } else {       
 //------------------------------------------------------------------------------
 //uPlayer is not open 
-            window.parent.UPLAYER_instance=core.openDialog("{{pluginApi}}",core.icon('{{pluginHost}}static/uP_icon.png'),htmlEncode("uPLAYER"));
-            window.parent.UPLAYER_instance._width="489px";
-            window.parent.UPLAYER_instance.config.width="489px";
-            window.parent.UPLAYER_instance._height="679px";
-            window.parent.UPLAYER_instance.config.height="679px";
-            window.parent.UPLAYER_instance.config.resize=false;
-            window.parent.UPLAYER_instance.config.show=false;
-            var UPUUID=(window.parent.UPLAYER_instance.config.id);
-            window.parent.UPLAYER_instance.config.left="80%";
-            window.parent.UPLAYER_instance._left="80%";
+            UPLAYER_instance=core.openDialog("{{pluginApi}}",core.icon('{{pluginHost}}static/uP_icon.png'),htmlEncode("uPLAYER"));
+            //UPLAYER_instance._width="489px";
+            //UPLAYER_instance.config.width="489px";
+            //UPLAYER_instance._height="679px";
+            //UPLAYER_instance.config.height="679px";
+            UPLAYER_instance.config.resize=false;
+            UPLAYER_instance.config.show=false;
+            window.parent.UPUUID=(UPLAYER_instance.config.id);
+            UPLAYER_instance.config.left="80%";
+            UPLAYER_instance._left="80%";
             var checkExist_uPlayer = setInterval(function() {
-              if (typeof window.parent.UPLAYER_instance !== "undefined") {
+              if (typeof UPLAYER_instance !== "undefined") {
                 window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");     
                 if (ext=="mp4") window.parent._uPlayerPlaylist_0.add({
                   title:window.parent.uplaylist_filename,
                   artist:"", 
                   m4v:window.parent.uplaylist_url,
                   poster: window.parent.uplaylist_fileposter
-                }); else window.parent._uPlayerPlaylist_0.add({
+                }); 
+                else if (ext=="mp3") window.parent._uPlayerPlaylist_0.add({
                   title:window.parent.uplaylist_filename,
                   artist:"", 
                   mp3:window.parent.uplaylist_url,
                   poster: window.parent.uplaylist_fileposter
                 });  
+                else if (ext=="wav") window.parent._uPlayerPlaylist_0.add({
+                  title:window.parent.uplaylist_filename,
+                  artist:"", 
+                  wav:window.parent.uplaylist_url,
+                  poster: window.parent.uplaylist_fileposter
+                });  
+                else if (ext=="ogg") window.parent._uPlayerPlaylist_0.add({
+                  title:window.parent.uplaylist_filename,
+                  artist:"", 
+                  oga:window.parent.uplaylist_url,
+                  poster: window.parent.uplaylist_fileposter
+                });  
 		          clearInterval(checkExist_uPlayer);
+              //fix call refresh events
+              window.parent._uPlayerPlaylist_0._init();
+
             } 
           }, 200); // check every 100ms      
         }         
       } 
     },
   });
-
+  
+  
+  
+//ADD TO PLAYLIST
   var menuOpt = {
 	  'play-media':{
 			 name:LNG.add_to_play,
@@ -157,7 +263,19 @@ kodReady.push(function(){
 					 var ext = ui.fileLight.type($(this));
 					 if ( kodApp.appSupportCheck('uPLAYER',ext) ) {
 						 var path = ui.fileLight.path($(this)); 
-						 var url = core.path2url(path,true);
+//------------------------------------------------------------------------------
+   if (path.indexOf("/share/") > -1) {
+            path = path.replace('{groupPath}:1','');
+            path = "/data/Group/public/home"+path;
+          } else if (G.myDesktop=="/desktop/") {
+          path = "/data/User/"+$("#topbar-user").text().trim()+"/home"+path;
+        } else {
+          path = core.path2url(path);
+        }    						 
+//------------------------------------------------------------------------------
+             var url = path;
+           
+             //alert(url);
 						 list.push({
 						 	 url:url,
 							 name:core.pathThis(path),
@@ -165,9 +283,11 @@ kodReady.push(function(){
 						 });
 					 } 
 			   });
+         
+       //  alert(window.parent.uplaylist_url);
  //add to playlist**************************************************************       
 
-        if (typeof window.parent.UPLAYER_instance !== "undefined" && window.parent.UPLAYER_instance.closed == false) {   
+        if (typeof UPLAYER_instance !== "undefined" && UPLAYER_instance.closed == false) {   
 //------------------------------------------------------------------------------
 //uPlayer is opened 
           var i;
@@ -185,19 +305,20 @@ kodReady.push(function(){
         } else { 
 //------------------------------------------------------------------------------
 //uPlayer is not open
-          window.parent.UPLAYER_instance=core.openDialog("{{pluginApi}}",core.icon('{{pluginHost}}static/uP_icon.png'),htmlEncode("uPLAYER"));
-          window.parent.UPLAYER_instance._width="489px";
-          window.parent.UPLAYER_instance.config.width="489px";
-          window.parent.UPLAYER_instance._height="679px";
-          window.parent.UPLAYER_instance.config.height="679px";
-          window.parent.UPLAYER_instance.config.resize=false;
-          window.parent.UPLAYER_instance.config.show=false;
-          var UPUUID=(window.parent.UPLAYER_instance.config.id);
+          UPLAYER_instance=core.openDialog("{{pluginApi}}",core.icon('{{pluginHost}}static/uP_icon.png'),htmlEncode("uPLAYER"));
+          //UPLAYER_instance._width="489px";
+          //UPLAYER_instance.config.width="489px";
+          //UPLAYER_instance._height="679px";
+          //UPLAYER_instance.config.height="679px";
+          UPLAYER_instance.config.resize=false;
+          UPLAYER_instance.config.show=false;
+          window.parent.UPUUID=(UPLAYER_instance.config.id);
           var new_playlist=[];          
           var checkExist_uPlayer_a = setInterval(function() {
-          if (typeof window.parent.UPLAYER_instance !== "undefined") {
+          if (typeof UPLAYER_instance !== "undefined") {
             var i;
             for (i = 0; i < list.length; i++) {
+              
               window.parent.uplaylist_url=list[i]["url"];
               window.parent.uplaylist_filename=list[i]["name"]; 
               window.parent.uplaylist_fileposter = window.parent.uplaylist_url.replace(".mp3", ".jpg");     
@@ -240,11 +361,75 @@ function SavePlaylist() {
       var tmp=0;
       for (tmp=0;tmp<window.parent._uPlayerPlaylist_0.playlist.length;tmp++) {
         var playlist_url=window.parent._uPlayerPlaylist_0.playlist[tmp].mp3;
+        //console.log(window.parent._uPlayerPlaylist_0.playlist[tmp].mp3);
+
+          if (playlist_url.indexOf("/share/") > -1) {
+            playlist_url = playlist_url.replace('{groupPath}:1','');
+            if (playlist_url.indexOf(window.location.origin) > -1) {}
+            else 
+            playlist_url = window.location.origin+playlist_url;
+          } else if (G.myDesktop=="/desktop/") {
+            playlist_url = "/data/User/"+$("#topbar-user").text().trim()+"/home"+playlist_url;
+          } else {
+            playlist_url = core.path2url(playlist_url);
+          } 
+           //NCX hack
+           var hostname= $(location).attr('protocol') + "//" + $(location).attr('hostname');
+
+           playlist_url = playlist_url.replace(hostname,'');
+
+        //playlist_url=core.path2url(playlist_url);  
+        ///alert(hostname + "  =  " + playlist_url);                     
         if (typeof playlist_url == "undefined" ) playlist_url=window.parent._uPlayerPlaylist_0.playlist[tmp].m4v;
         playlist_data=playlist_data+playlist_url+"\n";
-      }
-      var request = '{{pluginApi}}playlist_saver';   
-      $.ajax({
+      }  
+       //path=playlist_url;
+     //  alert(path)
+//------------------------------------------------------------------------------
+  /* if (path.indexOf("/share/") > -1) {
+            path = path.replace('{groupPath}:1','');
+            path = "../../../data/Group/public/home"+path+"playlist.m3u";
+            //path = "http://"+document.location.hostname + path;
+            //path=core.path2url(path);  
+          } else if (G.myDesktop=="/desktop/") {
+            path=("../../../"+"data/User/"+$("#topbar-user").text().trim()+"/home"+path+"playlist.m3u");
+        } else {
+          path=path+"playlist.m3u";
+        }    		*/				 
+//------------------------------------------------------------------------------      
+    if (path.indexOf("/share/") > -1) {
+            path = path.replace('{groupPath}:1','');
+            path = "../../../data/Group/public/home"+path+"";
+            //path = "http://"+document.location.hostname + path;
+            //path=core.path2url(path);  
+          } else if (G.myDesktop=="/desktop/") {
+            path=("../../../"+"data/User/"+$("#topbar-user").text().trim()+"/home"+path+"");
+        } else {
+          path=path+"";
+        }    						 
+//------------------------------------------------------------------------------      
+
+   //alert(path)
+   //console.log(path)
+   
+      $.ajaxSetup({
+    cache: false
+  });
+  $.ajax({
+    type: 'POST',    
+    url:'/plugins/uPLAYER/static/saveplaylist.php',
+    data:{'dataurl':path,'memories':playlist_data},
+    success: function(msg){
+      //load_memory();
+      //alert(DATAURL);
+    },
+    error: function(msg){
+      alert("playlist.m3u write error");
+    }
+  });
+      
+      
+  /*    $.ajax({
 			  url:request,
 				dataType:'json',
         type: 'post',          
@@ -255,7 +440,7 @@ function SavePlaylist() {
         console.log("save_playlist_ok.");
 			},
       data:{path:path,playlistdata:playlist_data}       
-		});  
+		});  */
   }); 
 }
 

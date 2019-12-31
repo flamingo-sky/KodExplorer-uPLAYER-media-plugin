@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="width:100% !important; height:100% !important;display:table !important;background-color:#000000;">
+<html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta http-equiv="Cache-Control" content="no-store" /> <!-- stops chrome from caching -->		
@@ -7,7 +7,8 @@
   <link href="plugins/uPLAYER/static/uplayer/css/up.skin.default/up.skin.default.css" rel="stylesheet" type="text/css" />
 
   <style type="text/CSS">
-    html {background-color:transparent !important;height:710px;overflow:hidden;}
+    html {background-color:transparent !important;height:auto !important;overflow:hidden;width:100% !important; display:table !important;background-color:#000000;}
+    body {padding:0;margin:0;width:100%;height:auto !important;margin:0px auto 0px auto;}
       
     .uP-clear .uP-playlist ul li div a {color:rgba(255,255,255,0.7);text-shadow:rgba(0,0,0,0.8) 1px 1px 0px;}
     .uP-clear .uP-playlist ul li div a:hover {color:#ffffff;text-shadow:#333333 1px 1px 0px;}
@@ -21,22 +22,30 @@
   <script type="text/javascript" src="plugins/uPLAYER/static/uplayer/js/upresponsive.js"></script>   
   <script type="text/javascript" src="plugins/uPLAYER/static/uplayer/js/upvisualization.js"></script>
   <script type="text/javascript">
+    
+    function checkImage(imageSrc, good, bad) {
+      var img = new Image();
+      img.onload = good; 
+      img.onerror = bad;
+      img.src = imageSrc;
+    }
 
     $(document).ready(function(){
-                                                                         
-      $('.'+window.parent.UPUUID, window.parent.document).width('489px');
-      $('.'+window.parent.UPUUID, window.parent.document).height('710px');   
+                                                                 
+      $('.'+window.parent.UPUUID, window.parent.document).width('299px');
+      $('.'+window.parent.UPUUID, window.parent.document).height('auto');    
       $('.'+window.parent.UPUUID, window.parent.document).css('left','auto'); 
       $('.'+window.parent.UPUUID, window.parent.document).css('right','7vh'); 
       $('.'+window.parent.UPUUID, window.parent.document).css('top','7vh'); 
-      $('.'+window.parent.UPUUID+" .aui-outer", window.parent.document).height('710px');
+      
       $('.'+window.parent.UPUUID+" .aui-main", window.parent.document).css('background-color','transparent');
+      
 /******************************************************************************/
 /*  μPlayer js playlist multiple media                                        */
 /******************************************************************************/      
       window.parent._uPlayerPlaylist_0 = new uPlayerPlaylist({
 	  	  uPlayer: "#jquery_uPlayer_0",
-		    cssSelectorAncestor: "#uP_container_0"   
+		    cssSelectorAncestor: "#uP_container_0",  
 	    },[],{
         playlistOptions: {
           enableRemoveControls: true
@@ -44,8 +53,8 @@
   		  swfPath: "../swf/player.swf",
         swfPathRTMP: "../swf/rtmp_player.swf",
         solution: "html, flash",
-		    supplied: "mp3, m4v",
-        playerSize: "250p",
+		    supplied: "mp3, m4v, oga, wav",
+        playerSize: "150p",
         mediaVideoQualityFormatsPrefix: true,         
         buttons: ["previous","play","stop","next","repeat","fullscreen","mute","volume-switch","visualization-switch","playlist-switch"],
         swfPathRevolt: "../swf/revolt.swf",
@@ -65,45 +74,57 @@
 		    keyEnabled: true,
 		    audioFullScreen: true,
         pauseOthersPlayers: false,
-        loop: true         
+        loop: true,        
+        resize: function() {
+          $('.'+window.parent.UPUUID, window.parent.document).width('299px');
+          $('.'+window.parent.UPUUID+" .aui-main", window.parent.document).height($("#body").height());          
+        },
+        ready: function() {
+          $('.'+window.parent.UPUUID, window.parent.document).width('299px');
+          $('.'+window.parent.UPUUID+" .aui-main", window.parent.document).height($("#body").height());       
+        },          
+        setmedia: function() {
+          $('.'+window.parent.UPUUID, window.parent.document).width('299px');
+          $('.'+window.parent.UPUUID+" .aui-main", window.parent.document).height($("#body").height());     
+        }         
 	    });
 
       loadTvNoise ();
       upVis_loader();
 
-      $(".uP-playlist ul").css("height","366px");        
+      $(".uP-playlist ul").css("height","auto");        
+      $(".uP-playlist ul").css("max-height","250px");        
 
-      function checkImage(imageSrc, good, bad) {
-    var img = new Image();
-    img.onload = good; 
-    img.onerror = bad;
-    img.src = imageSrc;
-}
-
-
-
+      window.onresize = function(event) {
+                                                                 
+         $('.'+window.parent.UPUUID, window.parent.document).width('299px');
+         $('.'+window.parent.UPUUID, window.parent.document).height('auto');    
+         $('.'+window.parent.UPUUID, window.parent.document).css('left','auto'); 
+         $('.'+window.parent.UPUUID, window.parent.document).css('right','7vh'); 
+         $('.'+window.parent.UPUUID, window.parent.document).css('top','7vh'); 
+      
+         $('.'+window.parent.UPUUID+" .aui-main", window.parent.document).css('background-color','transparent');
+         $('.'+window.parent.UPUUID+" .aui-main", window.parent.document).height($("#body").height());
+      };     
+             
       $("#jquery_uPlayer_0").bind($.uPlayer.event.play, function(event) {
-        /*$.get(window.parent._uPlayerPlaylist_0.playlist[window.parent._uPlayerPlaylist_0.current].poster).done(function () { 
-          $(".uP-vis-canvas").css("opacity", "0.5"); 
-        }).fail(function () {
-          $(".uP-vis-canvas").css("opacity", "1")       
-        });  */
         checkImage(window.parent._uPlayerPlaylist_0.playlist[window.parent._uPlayerPlaylist_0.current].poster, function(){ $(".uP-vis-canvas").css("opacity", "0.5");  }, function(){ $(".uP-vis-canvas").css("opacity", "1") ; } );
       }); 
       $('.uP-playlist-switch').click(function() {
         window.parent.SavePlaylist();
       }); 
+ 
 /******************************************************************************/
 /*   μPlayer js end                                                           */
 /******************************************************************************/
    });   
-
+   
    //]]>
    </script>   
    
 </head>
 
-<body id="body" style="padding:0;margin:0;width:100%;height:100%;margin:0px auto 0px auto;" >
+<body id="body">
 
 <div class="brd-clear">
 <div id="uP_container_0" class="uP-video uP-clear" role="application" aria-label="media player">
@@ -148,7 +169,6 @@
   </div>
 </div>
 </div>
-
 
 </body>
 </html>
